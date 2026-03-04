@@ -53,6 +53,7 @@
               "api-reference/auth/login",
               "api-reference/auth/refresh",
               "api-reference/auth/get-user",
+              "api-reference/auth/list-users",
               "api-reference/auth/change-password",
               "api-reference/auth/update-profile"
             ]

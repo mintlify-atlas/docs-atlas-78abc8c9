@@ -1,0 +1,136 @@
+---
+title: List All Users
+api: GET /users
+description: Retrieve a list of all users in the system
+---
+
+<Warning>
+  This endpoint does not require authentication and returns all users. It should only be used in development/testing environments and should be disabled in production.
+</Warning>
+
+## Response
+
+Returns a list of all registered users with their profile information and financial summaries.
+
+<ResponseField name="users" type="array">
+  Array of user objects
+
+  <Expandable title="User object">
+    <ResponseField name="id" type="integer">
+      Unique user identifier
+    </ResponseField>
+
+    <ResponseField name="email" type="string">
+      User's email address
+    </ResponseField>
+
+    <ResponseField name="name" type="string">
+      User's display name
+    </ResponseField>
+
+    <ResponseField name="current_balance" type="number">
+      Current balance (total income - total expenses)
+    </ResponseField>
+
+    <ResponseField name="total_transactions" type="integer">
+      Total number of transactions
+    </ResponseField>
+
+    <ResponseField name="total_expenses" type="number">
+      Sum of all expense transactions
+    </ResponseField>
+
+    <ResponseField name="total_income" type="number">
+      Sum of all income transactions
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Request Example
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.expensia.com/users
+```
+
+```python Python
+import requests
+
+response = requests.get("https://api.expensia.com/users")
+users = response.json()
+
+print(f"Total users: {len(users['users'])}")
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.expensia.com/users');
+const data = await response.json();
+
+console.log(`Total users: ${data.users.length}`);
+```
+</CodeGroup>
+
+## Response Example
+
+```json
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "john@example.com",
+      "name": "John Doe",
+      "current_balance": 1250.00,
+      "total_transactions": 45,
+      "total_expenses": 3200.50,
+      "total_income": 4450.50
+    },
+    {
+      "id": 2,
+      "email": "jane@example.com",
+      "name": "Jane Smith",
+      "current_balance": -150.00,
+      "total_transactions": 23,
+      "total_expenses": 1800.00,
+      "total_income": 1650.00
+    }
+  ]
+}
+```
+
+## Error Responses
+
+This endpoint does not require authentication and typically does not return errors unless there's a database connection issue.
+
+<Accordion title="500 Internal Server Error">
+  ```json
+  {
+    "detail": "Internal server error"
+  }
+  ```
+  Database connection or query failed.
+</Accordion>
+
+## Security Considerations
+
+<Warning>
+  **Important**: This endpoint exposes all user data without authentication. It should be:
+  - Disabled or removed in production environments
+  - Protected with admin-level authentication
+  - Used only for development and testing purposes
+</Warning>
+
+Consider implementing proper access control:
+- Add authentication middleware with admin role verification
+- Remove the endpoint entirely for production deployments
+- Use environment-based feature flags to disable in production
+
+## Related Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Get Current User" icon="user" href="/api-reference/auth/get-user">
+    Retrieve authenticated user's information
+  </Card>
+  <Card title="Register User" icon="user-plus" href="/api-reference/auth/register">
+    Create a new user account
+  </Card>
+</CardGroup>
