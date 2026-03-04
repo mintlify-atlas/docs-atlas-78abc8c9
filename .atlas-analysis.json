@@ -1,0 +1,101 @@
+{
+  "projectType": "api-service",
+  "projectName": "Expensia",
+  "projectDescription": "A RESTful API for personal finance management with transaction tracking, category management, and JWT authentication.",
+  "theme": "mint",
+  "primaryColor": "#10B981",
+  "lightColor": "#34D399",
+  "darkColor": "#059669",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "authentication"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/transactions",
+              "guides/categories",
+              "guides/date-filtering",
+              "guides/error-handling"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Authentication",
+            "pages": [
+              "api-reference/auth/register",
+              "api-reference/auth/login",
+              "api-reference/auth/refresh",
+              "api-reference/auth/get-user",
+              "api-reference/auth/change-password",
+              "api-reference/auth/update-profile"
+            ]
+          },
+          {
+            "group": "Transactions",
+            "pages": [
+              "api-reference/transactions/list-transactions",
+              "api-reference/transactions/get-transaction",
+              "api-reference/transactions/recent-transactions",
+              "api-reference/transactions/create-transaction",
+              "api-reference/transactions/update-transaction",
+              "api-reference/transactions/delete-transaction",
+              "api-reference/transactions/delete-all-transactions"
+            ]
+          },
+          {
+            "group": "Categories",
+            "pages": [
+              "api-reference/categories/list-categories",
+              "api-reference/categories/get-category",
+              "api-reference/categories/category-transactions",
+              "api-reference/categories/create-category",
+              "api-reference/categories/delete-category"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "JWT-based authentication with access and refresh tokens",
+    "Complete transaction management (income and expenses)",
+    "Custom category system with color and icon support",
+    "Automatic balance calculation and financial tracking",
+    "Date range filtering for transactions",
+    "Argon2 password hashing for security"
+  ],
+  "publicApiSurface": [
+    "POST /register - Register a new user",
+    "POST /login - Login and receive JWT tokens",
+    "POST /refresh - Refresh access token",
+    "GET /me - Get current user information",
+    "PATCH /change-password - Change user password",
+    "PATCH /update-profile - Update user profile",
+    "GET /transactions - List all transactions with optional date filtering",
+    "GET /transactions/recent - Get recent transactions (last 3 days)",
+    "GET /transactions/{id} - Get a specific transaction",
+    "POST /transactions - Create a new transaction",
+    "PUT /transactions/{id} - Update a transaction",
+    "DELETE /transactions/{id} - Delete a transaction",
+    "DELETE /transactions - Delete all transactions",
+    "GET /categories - List all categories",
+    "GET /category/{id} - Get a specific category",
+    "GET /category/{id}/transactions - Get all transactions in a category",
+    "POST /categories - Create a new category",
+    "DELETE /category/{id} - Delete a category"
+  ]
+}
