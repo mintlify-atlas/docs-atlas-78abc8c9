@@ -1,0 +1,83 @@
+---
+title: 'Register User'
+api: 'POST /register'
+description: 'Create a new user account'
+---
+
+## Request Body
+
+<ParamField body="name" type="string" required>
+  The full name of the user
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  The user's email address. Must be a valid email format and deliverable. Email will be normalized before storage.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The user's password. Will be hashed before storage.
+</ParamField>
+
+## Response
+
+<ResponseField name="user_id" type="integer">
+  The unique identifier for the newly created user
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Success message confirming user creation
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X POST https://api.expensia.com/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "password": "securePassword123"
+  }'
+```
+
+```json Request
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "securePassword123"
+}
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200 - Success
+{
+  "user_id": 42,
+  "message": "User created successfully"
+}
+```
+
+```json 400 - Invalid Email
+{
+  "detail": "Invalid email"
+}
+```
+
+```json 409 - Email Already Exists
+{
+  "detail": "Email already exists"
+}
+```
+
+</ResponseExample>
+
+## Notes
+
+- Email validation includes deliverability checks
+- Passwords are automatically hashed using secure hashing algorithms
+- Email addresses are normalized to prevent duplicate registrations
+- Returns HTTP 200 on success
+- Returns HTTP 400 if email format is invalid
+- Returns HTTP 409 if email is already registered

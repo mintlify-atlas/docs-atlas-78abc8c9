@@ -1,0 +1,94 @@
+---
+title: "Delete All Transactions"
+api: "DELETE /transactions"
+description: "Delete all transactions for the authenticated user"
+---
+
+Deletes all transactions belonging to the authenticated user and resets all financial counters to zero:
+
+- `current_balance` → 0
+- `total_income` → 0
+- `total_expenses` → 0
+- `total_transactions` → 0
+
+This endpoint is useful for resetting a user's financial data or clearing test data.
+
+## Authentication
+
+Requires a valid Bearer token in the Authorization header.
+
+## Response
+
+<ResponseField name="message" type="string">
+  Confirmation message: `All transactions deleted`
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl --request DELETE \
+  --url https://api.expensia.com/transactions \
+  --header 'Authorization: Bearer <token>'
+```
+
+```python Python
+import requests
+
+url = "https://api.expensia.com/transactions"
+headers = {"Authorization": "Bearer <token>"}
+
+response = requests.delete(url, headers=headers)
+print(response.json())
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.expensia.com/transactions', {
+  method: 'DELETE',
+  headers: {
+    'Authorization': 'Bearer <token>'
+  }
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "message": "All transactions deleted"
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseField name="401" type="error">
+  Unauthorized - Invalid or missing authentication token
+</ResponseField>
+
+## Reset Behavior
+
+This endpoint performs the following operations:
+
+1. **Deletes all transactions** where `user_id` matches the authenticated user
+2. **Resets user financial fields:**
+   - `current_balance = 0`
+   - `total_expenses = 0`
+   - `total_income = 0`
+   - `total_transactions = 0`
+
+All operations are performed within a single database transaction to ensure data consistency.
+
+## Notes
+
+- This operation is **irreversible** - all transactions are permanently deleted
+- Only transactions belonging to the authenticated user are deleted
+- All changes are performed atomically within a database transaction
+- If the database commit fails, all changes are rolled back
+- This endpoint does not delete categories - only transactions
+- Consider implementing a confirmation step in your application before calling this endpoint

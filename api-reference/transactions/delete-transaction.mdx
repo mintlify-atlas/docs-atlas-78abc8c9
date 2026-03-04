@@ -1,0 +1,117 @@
+---
+title: "Delete Transaction"
+api: "DELETE /transactions/{id}"
+description: "Delete a single transaction by ID"
+---
+
+Deletes a specific transaction for the authenticated user. The user's balance is automatically updated to reverse the transaction:
+
+- **Income transaction**: Subtracts from `current_balance` and `total_income`
+- **Expense transaction**: Adds back to `current_balance` and subtracts from `total_expenses`
+
+The user's `total_transactions` counter is also decremented.
+
+## Authentication
+
+Requires a valid Bearer token in the Authorization header.
+
+## Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the transaction to delete
+</ParamField>
+
+## Response
+
+<ResponseField name="deleted_transaction_id" type="integer">
+  The ID of the deleted transaction
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Confirmation message: `Transaction deleted`
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl --request DELETE \
+  --url https://api.expensia.com/transactions/129 \
+  --header 'Authorization: Bearer <token>'
+```
+
+```python Python
+import requests
+
+url = "https://api.expensia.com/transactions/129"
+headers = {"Authorization": "Bearer <token>"}
+
+response = requests.delete(url, headers=headers)
+print(response.json())
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.expensia.com/transactions/129', {
+  method: 'DELETE',
+  headers: {
+    'Authorization': 'Bearer <token>'
+  }
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "deleted_transaction_id": 129,
+  "message": "Transaction deleted"
+}
+```
+
+```json 404
+{
+  "detail": "Transaction not found"
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseField name="401" type="error">
+  Unauthorized - Invalid or missing authentication token
+</ResponseField>
+
+<ResponseField name="404" type="error">
+  Not Found - Transaction does not exist or does not belong to the authenticated user
+  
+  **Error message:** `Transaction not found`
+</ResponseField>
+
+## Balance Adjustment
+
+When a transaction is deleted, the following user fields are updated:
+
+### If deleted transaction was Income:
+- `current_balance -= amount`
+- `total_income -= amount`
+
+### If deleted transaction was Expense:
+- `current_balance += amount`
+- `total_expenses -= amount`
+
+### Always:
+- `total_transactions -= 1`
+
+This effectively reverses the transaction's impact on the user's financial records.
+
+## Notes
+
+- The transaction must belong to the authenticated user
+- All balance updates are performed atomically within a database transaction
+- If the database commit fails, all changes are rolled back and the transaction is not deleted
+- This operation cannot be undone - the transaction is permanently deleted from the database

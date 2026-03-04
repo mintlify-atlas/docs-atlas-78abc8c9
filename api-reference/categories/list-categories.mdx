@@ -1,0 +1,77 @@
+---
+title: 'List Categories'
+api: 'GET /categories'
+description: 'Retrieve all categories for the authenticated user'
+---
+
+## Authentication
+
+This endpoint requires authentication. Include a valid JWT token in the Authorization header.
+
+## Response
+
+<ResponseField name="categories" type="array">
+  Array of category objects belonging to the authenticated user
+  
+  <Expandable title="Category Object">
+    <ResponseField name="id" type="integer">
+      Unique identifier for the category
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Name of the category
+    </ResponseField>
+    
+    <ResponseField name="color" type="string">
+      Color code for the category (e.g., hex color)
+    </ResponseField>
+    
+    <ResponseField name="icon" type="string">
+      Icon identifier for the category
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example Request
+
+```bash cURL
+curl -X GET "https://api.expensia.com/categories" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+## Example Response
+
+```json
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "Groceries",
+      "color": "#4CAF50",
+      "icon": "shopping-cart"
+    },
+    {
+      "id": 2,
+      "name": "Transportation",
+      "color": "#2196F3",
+      "icon": "car"
+    },
+    {
+      "id": 3,
+      "name": "Entertainment",
+      "color": "#FF9800",
+      "icon": "movie"
+    }
+  ]
+}
+```
+
+## Response Codes
+
+<ResponseField name="200" type="Success">
+  Categories retrieved successfully
+</ResponseField>
+
+<ResponseField name="401" type="Unauthorized">
+  Missing or invalid authentication token
+</ResponseField>

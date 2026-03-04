@@ -1,0 +1,483 @@
+---
+title: 'Date Filtering'
+description: 'Guide to filtering transactions by date ranges in Expensia Finance Tracker'
+---
+
+## Overview
+
+The Expensia API supports filtering transactions by date range using millisecond timestamps. This guide explains how to use the date filtering parameters and handle timezone conversions.
+
+## Query Parameters
+
+The `/transactions` endpoint accepts optional date filtering parameters:
+
+<ParamField query="start_date_ms" type="integer" optional>
+  Start date in milliseconds since Unix epoch (must be positive)
+</ParamField>
+
+<ParamField query="end_date_ms" type="integer" optional>
+  End date in milliseconds since Unix epoch (must be positive)
+</ParamField>
+
+<Info>
+**How date filtering works:**
+- Dates are converted from milliseconds to UTC datetime
+- Start date is set to 00:00:00 (beginning of day)
+- End date is set to 23:59:59 (end of day, by adding 1 day and filtering with `<`)
+- Transactions are filtered inclusively for both start and end dates
+- Results are ordered by transaction date (newest first)
+</Info>
+
+---
+
+## Basic Date Filtering
+
+### Filter by Date Range
+
+<CodeGroup>
+```bash cURL
+# January 1, 2024 to January 31, 2024
+curl -X GET "https://api.expensia.com/transactions?start_date_ms=1704067200000&end_date_ms=1706745599000" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+```python Python
+import requests
+from datetime import datetime
+
+# Convert dates to milliseconds
+start_date = datetime(2024, 1, 1)
+end_date = datetime(2024, 1, 31)
+
+start_ms = int(start_date.timestamp() * 1000)
+end_ms = int(end_date.timestamp() * 1000)
+
+response = requests.get(
+    "https://api.expensia.com/transactions",
+    headers={"Authorization": "Bearer YOUR_TOKEN"},
+    params={
+        "start_date_ms": start_ms,
+        "end_date_ms": end_ms
+    }
+)
+
+data = response.json()
+print(f"Found {len(data['transactions'])} transactions")
+```
+
+```javascript JavaScript
+// January 1, 2024 to January 31, 2024
+const startDate = new Date('2024-01-01');
+const endDate = new Date('2024-01-31');
+
+const startMs = startDate.getTime();
+const endMs = endDate.getTime();
+
+const response = await fetch(
+  `https://api.expensia.com/transactions?start_date_ms=${startMs}&end_date_ms=${endMs}`,
+  {
+    headers: {
+      'Authorization': 'Bearer YOUR_TOKEN'
+    }
+  }
+);
+
+const data = await response.json();
+console.log(`Found ${data.transactions.length} transactions`);
+```
+</CodeGroup>
+
+**Response (200 OK):**
+```json
+{
+  "start_date_ms": 1704067200000,
+  "end_date_ms": 1706745599000,
+  "transactions": [
+    {
+      "id": 45,
+      "transaction_type": "expense",
+      "amount": 75.00,
+      "note": "Grocery shopping",
+      "category_id": 2,
+      "transaction_date": "2024-01-25T00:00:00",
+      "created_date": "2024-01-25T14:30:00.123456",
+      "updated_date": "2024-01-25T14:30:00.123456"
+    },
+    {
+      "id": 44,
+      "transaction_type": "income",
+      "amount": 3000.00,
+      "note": "Monthly salary",
+      "category_id": 5,
+      "transaction_date": "2024-01-01T00:00:00",
+      "created_date": "2024-01-01T08:00:00.123456",
+      "updated_date": "2024-01-01T08:00:00.123456"
+    }
+  ]
+}
+```
+
+---
+
+## Advanced Filtering Scenarios
+
+### Filter from Start Date Only
+
+Get all transactions from a specific date onwards.
+
+<CodeGroup>
+```bash cURL
+# All transactions from January 1, 2024 onwards
+curl -X GET "https://api.expensia.com/transactions?start_date_ms=1704067200000" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+```python Python
+from datetime import datetime
+
+start_date = datetime(2024, 1, 1)
+start_ms = int(start_date.timestamp() * 1000)
+
+response = requests.get(
+    "https://api.expensia.com/transactions",
+    headers={"Authorization": "Bearer YOUR_TOKEN"},
+    params={"start_date_ms": start_ms}
+)
+```
+</CodeGroup>
+
+**Response (200 OK):**
+```json
+{
+  "start_date_ms": 1704067200000,
+  "transactions": [
+    // All transactions from January 1, 2024 onwards
+  ]
+}
+```
+
+### Filter up to End Date Only
+
+Get all transactions up to a specific date.
+
+<CodeGroup>
+```bash cURL
+# All transactions up to January 31, 2024
+curl -X GET "https://api.expensia.com/transactions?end_date_ms=1706745599000" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+```python Python
+end_date = datetime(2024, 1, 31)
+end_ms = int(end_date.timestamp() * 1000)
+
+response = requests.get(
+    "https://api.expensia.com/transactions",
+    headers={"Authorization": "Bearer YOUR_TOKEN"},
+    params={"end_date_ms": end_ms}
+)
+```
+</CodeGroup>
+
+**Response (200 OK):**
+```json
+{
+  "end_date_ms": 1706745599000,
+  "transactions": [
+    // All transactions up to January 31, 2024
+  ]
+}
+```
+
+### No Date Filters
+
+When no date parameters are provided, all transactions are returned.
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://api.expensia.com/transactions" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+</CodeGroup>
+
+**Response (200 OK):**
+```json
+{
+  "transactions": [
+    // All transactions for the user
+  ]
+}
+```
+
+<Note>
+When no date filters are provided, the response **does not** include `start_date_ms` or `end_date_ms` fields.
+</Note>
+
+---
+
+## Date Conversion Implementation
+
+The API uses the `ms_to_utc_nepal` utility function to convert milliseconds to datetime:
+
+```python
+# From utils/utils.py:64-67
+def ms_to_utc_nepal(ms: int) -> datetime:
+    nepal_time = datetime.fromtimestamp(ms / 1000)
+    utc_time = nepal_time.replace(microsecond=0, tzinfo=timezone.utc)
+    return utc_time
+```
+
+### Date Filtering Logic
+
+The filtering logic in the API:
+
+```python
+# From routes/transactionRoutes.py:40-61
+start_date = (
+    utils.ms_to_utc_nepal(start_date_ms) if start_date_ms is not None else None
+)
+end_date = utils.ms_to_utc_nepal(end_date_ms) if end_date_ms is not None else None
+
+if start_date:
+    start_date = start_date.replace(hour=0, minute=0, second=0)
+    query = query.filter(models.Transaction.transaction_date >= start_date)
+
+if end_date:
+    end_date = end_date.replace(hour=0, minute=0, second=0)
+    end_date += timedelta(days=1)  # Include entire end day
+    query = query.filter(models.Transaction.transaction_date < end_date)
+```
+
+<Accordion title="Why add 1 day to end_date?">
+The end date is increased by 1 day and uses the `<` (less than) operator instead of `<=` (less than or equal). This ensures that transactions with any time on the end date are included.
+
+**Example:**
+- User requests: `end_date_ms` = January 31, 2024 at 10:30 AM
+- API converts to: January 31, 2024 at 00:00:00
+- API adds 1 day: February 1, 2024 at 00:00:00
+- Query filters: `transaction_date < February 1, 2024 00:00:00`
+- Result: All transactions on January 31, 2024 (any time) are included
+</Accordion>
+
+---
+
+## Validation Rules
+
+### Positive Values Only
+
+Both date parameters must be positive integers.
+
+<CodeGroup>
+```bash cURL - Invalid Request
+curl -X GET "https://api.expensia.com/transactions?start_date_ms=-1000" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+</CodeGroup>
+
+**Error Response (400 Bad Request):**
+```json
+{
+  "detail": "start_date_ms must be positive"
+}
+```
+
+```python
+# From routes/transactionRoutes.py:35-38
+if start_date_ms is not None and start_date_ms < 0:
+    raise HTTPException(status_code=400, detail="start_date_ms must be positive")
+if end_date_ms is not None and end_date_ms < 0:
+    raise HTTPException(status_code=400, detail="end_date_ms must be positive")
+```
+
+### Start Date Before End Date
+
+The start date must not be greater than the end date.
+
+<CodeGroup>
+```bash cURL - Invalid Request
+# Start: Feb 1, 2024, End: Jan 1, 2024 (invalid)
+curl -X GET "https://api.expensia.com/transactions?start_date_ms=1706745600000&end_date_ms=1704067200000" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+</CodeGroup>
+
+**Error Response (400 Bad Request):**
+```json
+{
+  "detail": "start_date cannot be greater than end_date"
+}
+```
+
+```python
+# From routes/transactionRoutes.py:46-49
+if start_date and end_date and start_date > end_date:
+    raise HTTPException(
+        status_code=400, detail="start_date cannot be greater than end_date"
+    )
+```
+
+---
+
+## Common Date Range Helpers
+
+<AccordionGroup>
+  <Accordion title="Current month">
+    ```python
+    from datetime import datetime
+    
+    now = datetime.now()
+    start_of_month = datetime(now.year, now.month, 1)
+    
+    # End of month: first day of next month minus 1 second
+    if now.month == 12:
+        end_of_month = datetime(now.year + 1, 1, 1)
+    else:
+        end_of_month = datetime(now.year, now.month + 1, 1)
+    
+    start_ms = int(start_of_month.timestamp() * 1000)
+    end_ms = int(end_of_month.timestamp() * 1000)
+    
+    response = requests.get(
+        "https://api.expensia.com/transactions",
+        headers={"Authorization": "Bearer YOUR_TOKEN"},
+        params={"start_date_ms": start_ms, "end_date_ms": end_ms}
+    )
+    ```
+  </Accordion>
+
+  <Accordion title="Last 7 days">
+    ```python
+    from datetime import datetime, timedelta
+    
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=7)
+    
+    start_ms = int(start_date.timestamp() * 1000)
+    end_ms = int(end_date.timestamp() * 1000)
+    
+    response = requests.get(
+        "https://api.expensia.com/transactions",
+        headers={"Authorization": "Bearer YOUR_TOKEN"},
+        params={"start_date_ms": start_ms, "end_date_ms": end_ms}
+    )
+    ```
+  </Accordion>
+
+  <Accordion title="Last 30 days">
+    ```python
+    from datetime import datetime, timedelta
+    
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=30)
+    
+    start_ms = int(start_date.timestamp() * 1000)
+    end_ms = int(end_date.timestamp() * 1000)
+    
+    response = requests.get(
+        "https://api.expensia.com/transactions",
+        headers={"Authorization": "Bearer YOUR_TOKEN"},
+        params={"start_date_ms": start_ms, "end_date_ms": end_ms}
+    )
+    ```
+  </Accordion>
+
+  <Accordion title="Custom date range (JavaScript)">
+    ```javascript
+    function getTransactionsByDateRange(startDateStr, endDateStr, token) {
+      const startDate = new Date(startDateStr);
+      const endDate = new Date(endDateStr);
+      
+      const startMs = startDate.getTime();
+      const endMs = endDate.getTime();
+      
+      return fetch(
+        `https://api.expensia.com/transactions?start_date_ms=${startMs}&end_date_ms=${endMs}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      ).then(res => res.json());
+    }
+    
+    // Usage
+    getTransactionsByDateRange('2024-01-01', '2024-01-31', 'YOUR_TOKEN')
+      .then(data => console.log(data));
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Timezone Considerations
+
+<Warning>
+**Important:** The API converts timestamps to UTC timezone. If you're working with dates in a different timezone, ensure you convert them appropriately before sending to the API.
+</Warning>
+
+### Example: Converting Local Time to UTC
+
+<CodeGroup>
+```python Python
+from datetime import datetime
+import pytz
+
+# Create date in local timezone (e.g., US Eastern)
+local_tz = pytz.timezone('US/Eastern')
+local_date = local_tz.localize(datetime(2024, 1, 15, 10, 30))
+
+# Convert to milliseconds (automatically handles UTC conversion)
+ms = int(local_date.timestamp() * 1000)
+
+print(f"Milliseconds: {ms}")
+```
+
+```javascript JavaScript
+// JavaScript Date objects automatically handle timezone conversion
+const localDate = new Date('2024-01-15T10:30:00'); // Local timezone
+const ms = localDate.getTime(); // Automatically converts to UTC
+
+console.log(`Milliseconds: ${ms}`);
+```
+</CodeGroup>
+
+---
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Always validate dates" icon="check">
+    Verify that start_date is before end_date on the client side before making API requests.
+  </Card>
+  
+  <Card title="Handle timezones properly" icon="clock">
+    Be aware of timezone differences when converting dates to milliseconds.
+  </Card>
+  
+  <Card title="Use appropriate ranges" icon="calendar-range">
+    For large datasets, use date ranges to limit the number of transactions returned.
+  </Card>
+  
+  <Card title="Cache results" icon="database">
+    Consider caching filtered results for frequently requested date ranges.
+  </Card>
+</CardGroup>
+
+---
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Transaction Management" icon="exchange-alt" href="/guides/transactions">
+    Complete guide to transaction operations
+  </Card>
+  <Card title="API Reference" icon="book" href="/api-reference/transactions/list-transactions">
+    Detailed endpoint documentation
+  </Card>
+  <Card title="Recent Transactions" icon="clock" href="/api-reference/transactions/recent-transactions">
+    Get last 3 days of transactions
+  </Card>
+  <Card title="Error Handling" icon="exclamation-triangle" href="/guides/error-handling">
+    Common errors and solutions
+  </Card>
+</CardGroup>

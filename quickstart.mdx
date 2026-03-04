@@ -1,80 +1,357 @@
 ---
 title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+description: "Get started with the Expensia Finance Tracker API in minutes"
 ---
 
-## Get started in three steps
+## Getting Started
 
-Get your documentation site running locally and make your first customization.
+This guide will help you set up the Expensia Finance Tracker API and make your first request. You'll learn how to install dependencies, configure the environment, and authenticate with the API.
 
-### Step 1: Set up your local environment
+<Steps>
+  <Step title="Prerequisites">
+    Before you begin, ensure you have:
+    
+    - Python 3.12 or higher installed
+    - Basic knowledge of REST APIs
+    - A text editor or IDE
+  </Step>
+
+  <Step title="Clone and Install">
+    Clone the repository and install dependencies:
+
+    <CodeGroup>
+    ```bash Terminal
+    # Clone the repository
+    git clone https://github.com/Sameer292/Finance-tracker.git
+    cd Finance-tracker
+
+    # Create and activate virtual environment
+    uv venv
+    source .venv/bin/activate
+
+    # Install dependencies
+    uv sync
+    ```
+
+    ```bash Alternative (pip)
+    # Clone the repository
+    git clone https://github.com/Sameer292/Finance-tracker.git
+    cd Finance-tracker
+
+    # Create virtual environment
+    python -m venv .venv
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+    # Install dependencies
+    pip install -r requirements.txt
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Configure Environment Variables">
+    Create your environment configuration file:
+
+    ```bash Terminal
+    cp .env.example .env
+    ```
+
+    Edit the `.env` file with your configuration:
+
+    ```env .env
+    JWT_SECRET=your_secure_secret_key_here_min_32_characters
+    JWT_ALGORITHM=HS256
+    ACCESS_TOKEN_EXPIRE_MINUTES=30
+    REFRESH_TOKEN_EXPIRY_DAYS=7
+    DATABASE_URL=sqlite:///./financeTracker.db
+    ```
+
+    <Warning>
+      **Security Alert**: Use a strong, unique JWT secret in production. Generate one using:
+      ```bash
+      python -c "import secrets; print(secrets.token_urlsafe(32))"
+      ```
+    </Warning>
+  </Step>
+
+  <Step title="Start the Server">
+    Run the FastAPI development server:
+
+    ```bash Terminal
+    uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    ```
+
+    You should see output like:
+    ```
+    INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+    INFO:     Started reloader process
+    INFO:     Started server process
+    INFO:     Waiting for application startup.
+    INFO:     Application startup complete.
+    ```
+
+    <Note>
+      The API is now running at `http://localhost:8000`. Interactive docs are available at:
+      - Swagger UI: `http://localhost:8000/docs`
+      - ReDoc: `http://localhost:8000/redoc`
+    </Note>
+  </Step>
+
+  <Step title="Register Your First User">
+    Create a new user account using the `/register` endpoint:
+
+    <CodeGroup>
+    ```bash cURL
+    curl -X POST http://localhost:8000/register \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "John Doe",
+        "email": "john@example.com",
+        "password": "securepassword123"
+      }'
+    ```
+
+    ```python Python
+    import requests
+
+    response = requests.post(
+        "http://localhost:8000/register",
+        json={
+            "name": "John Doe",
+            "email": "john@example.com",
+            "password": "securepassword123"
+        }
+    )
+
+    print(response.json())
+    ```
+
+    ```javascript JavaScript
+    const response = await fetch('http://localhost:8000/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: 'John Doe',
+        email: 'john@example.com',
+        password: 'securepassword123'
+      })
+    });
+
+    const data = await response.json();
+    console.log(data);
+    ```
+    </CodeGroup>
+
+    **Response (200 OK):**
+    ```json
+    {
+      "user_id": 1,
+      "message": "User created successfully"
+    }
+    ```
+
+    <Note>
+      The email is validated and normalized during registration. Make sure to use a valid email format.
+    </Note>
+  </Step>
+
+  <Step title="Login and Get Access Token">
+    Authenticate with your credentials to receive JWT tokens:
+
+    <CodeGroup>
+    ```bash cURL
+    curl -X POST http://localhost:8000/login \
+      -H "Content-Type: application/json" \
+      -d '{
+        "email": "john@example.com",
+        "password": "securepassword123"
+      }'
+    ```
+
+    ```python Python
+    import requests
+
+    response = requests.post(
+        "http://localhost:8000/login",
+        json={
+            "email": "john@example.com",
+            "password": "securepassword123"
+        }
+    )
+
+    data = response.json()
+    access_token = data["access_token"]
+    refresh_token = data["refresh_token"]
+    print(f"Access Token: {access_token}")
+    ```
+
+    ```javascript JavaScript
+    const response = await fetch('http://localhost:8000/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: 'john@example.com',
+        password: 'securepassword123'
+      })
+    });
+
+    const { access_token, refresh_token } = await response.json();
+    localStorage.setItem('access_token', access_token);
+    localStorage.setItem('refresh_token', refresh_token);
+    ```
+    </CodeGroup>
+
+    **Response (200 OK):**
+    ```json
+    {
+      "user_id": 1,
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+    ```
+
+    <Warning>
+      Store these tokens securely:
+      - **Access Token**: Expires in 30 minutes (configurable)
+      - **Refresh Token**: Expires in 7 days (configurable)
+    </Warning>
+  </Step>
+
+  <Step title="Make Your First Authenticated Request">
+    Use the access token to fetch your user profile:
+
+    <CodeGroup>
+    ```bash cURL
+    curl -X GET http://localhost:8000/me \
+      -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+    ```
+
+    ```python Python
+    import requests
+
+    headers = {
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    response = requests.get(
+        "http://localhost:8000/me",
+        headers=headers
+    )
+
+    print(response.json())
+    ```
+
+    ```javascript JavaScript
+    const response = await fetch('http://localhost:8000/me', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${access_token}`
+      }
+    });
+
+    const user = await response.json();
+    console.log(user);
+    ```
+    </CodeGroup>
+
+    **Response (200 OK):**
+    ```json
+    {
+      "id": 1,
+      "email": "john@example.com",
+      "name": "John Doe",
+      "current_balance": 0.0,
+      "total_transactions": 0,
+      "total_expenses": 0.0,
+      "total_income": 0.0
+    }
+    ```
+
+    <Note>
+      The `/me` endpoint is protected and requires a valid access token in the Authorization header.
+    </Note>
+  </Step>
+</Steps>
+
+## Common Error Responses
+
+Handle these common errors in your application:
 
 <AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+  <Accordion title="400 Bad Request - Invalid Email">
+    ```json
+    {
+      "detail": "Invalid email"
+    }
+    ```
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
+    **Cause**: Email format is invalid or fails deliverability check during registration.
+    
+    **Solution**: Ensure you're using a valid, properly formatted email address.
   </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+
+  <Accordion title="401 Unauthorized - Invalid Credentials">
+    ```json
+    {
+      "detail": "Invalid email or password"
+    }
+    ```
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
+    **Cause**: Email or password is incorrect during login.
+    
+    **Solution**: Verify your credentials and try again.
+  </Accordion>
+
+  <Accordion title="401 Unauthorized - Invalid Token">
+    ```json
+    {
+      "detail": "Invalid token"
+    }
+    ```
+    
+    **Cause**: Access token is invalid, expired, or malformed.
+    
+    **Solution**: Use the refresh token to get a new access token or login again.
+  </Accordion>
+
+  <Accordion title="409 Conflict - Email Exists">
+    ```json
+    {
+      "detail": "Email already exists"
+    }
+    ```
+    
+    **Cause**: The email is already registered in the system.
+    
+    **Solution**: Use a different email or login with existing credentials.
   </Accordion>
 </AccordionGroup>
 
-### Step 2: Deploy your changes
+## Next Steps
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
+Now that you're authenticated, explore these features:
 
 <CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Learn about JWT tokens, refresh flows, and security best practices.
+  </Card>
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+  <Card title="Transactions" icon="money-bill" href="/api-reference/transactions/list-transactions">
+    Create, read, update, and delete income and expense transactions.
+  </Card>
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+  <Card title="Categories" icon="folder" href="/api-reference/categories/list-categories">
+    Organize transactions with custom categories.
+  </Card>
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="API Reference" icon="book" href="/api-reference/auth/register">
+    Explore all available endpoints and their parameters.
+  </Card>
 </CardGroup>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  **Need help?** Check out the [interactive API documentation](http://localhost:8000/docs) or review the full [API reference](/api-reference/auth/register).
 </Note>

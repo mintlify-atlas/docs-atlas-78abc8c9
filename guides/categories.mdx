@@ -1,0 +1,438 @@
+---
+title: 'Category System'
+description: 'Guide to managing categories for organizing transactions'
+---
+
+## Overview
+
+Categories help organize transactions by type, making it easier to track spending patterns and generate insights. Each category belongs to a specific user and can be customized with colors and icons.
+
+## Category Object
+
+<ResponseField name="id" type="integer">
+  Unique identifier for the category (read-only)
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Name of the category (must be unique per user)
+</ResponseField>
+
+<ResponseField name="color" type="string" required>
+  Hex color code for visual identification (e.g., "#FF5733")
+</ResponseField>
+
+<ResponseField name="icon" type="string" required>
+  Icon identifier for the category (e.g., "shopping", "food", "transport")
+</ResponseField>
+
+---
+
+## Creating Categories
+
+### Basic Category
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.expensia.com/categories" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Groceries",
+    "color": "#4CAF50",
+    "icon": "shopping-cart"
+  }'
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    "https://api.expensia.com/categories",
+    headers={"Authorization": "Bearer YOUR_TOKEN"},
+    json={
+        "name": "Groceries",
+        "color": "#4CAF50",
+        "icon": "shopping-cart"
+    }
+)
+
+print(response.json())
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.expensia.com/categories', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    name: 'Groceries',
+    color: '#4CAF50',
+    icon: 'shopping-cart'
+  })
+});
+
+const data = await response.json();
+console.log(data);
+```
+</CodeGroup>
+
+**Response (201 Created):**
+```json
+{
+  "id": 8,
+  "message": "New category added"
+}
+```
+
+<Warning>
+Category names must be unique per user. Attempting to create a category with a duplicate name will result in a `409 Conflict` error:
+
+```json
+{
+  "detail": "Category name already exists"
+}
+```
+</Warning>
+
+### Common Category Examples
+
+<Accordion title="Suggested Categories for Personal Finance">
+```json
+[
+  { "name": "Food & Dining", "color": "#FF6B6B", "icon": "utensils" },
+  { "name": "Transportation", "color": "#4ECDC4", "icon": "car" },
+  { "name": "Shopping", "color": "#FFE66D", "icon": "shopping-bag" },
+  { "name": "Entertainment", "color": "#95E1D3", "icon": "film" },
+  { "name": "Healthcare", "color": "#F38181", "icon": "heartbeat" },
+  { "name": "Bills & Utilities", "color": "#AA96DA", "icon": "file-invoice" },
+  { "name": "Salary", "color": "#48C9B0", "icon": "money-bill-wave" },
+  { "name": "Freelance", "color": "#5DADE2", "icon": "laptop-code" }
+]
+```
+</Accordion>
+
+---
+
+## Retrieving Categories
+
+### Get All Categories
+
+Retrieve all categories for the authenticated user.
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://api.expensia.com/categories" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+```python Python
+response = requests.get(
+    "https://api.expensia.com/categories",
+    headers={"Authorization": "Bearer YOUR_TOKEN"}
+)
+
+categories = response.json()["categories"]
+for category in categories:
+    print(f"{category['name']}: {category['color']}")
+```
+</CodeGroup>
+
+**Response (200 OK):**
+```json
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "Groceries",
+      "color": "#4CAF50",
+      "icon": "shopping-cart"
+    },
+    {
+      "id": 2,
+      "name": "Transportation",
+      "color": "#2196F3",
+      "icon": "car"
+    },
+    {
+      "id": 3,
+      "name": "Salary",
+      "color": "#8BC34A",
+      "icon": "money-bill-wave"
+    }
+  ]
+}
+```
+
+### Get Single Category
+
+Retrieve a specific category by ID.
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://api.expensia.com/category/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+```python Python
+category_id = 1
+response = requests.get(
+    f"https://api.expensia.com/category/{category_id}",
+    headers={"Authorization": "Bearer YOUR_TOKEN"}
+)
+
+category = response.json()
+```
+</CodeGroup>
+
+**Response (200 OK):**
+```json
+{
+  "id": 1,
+  "name": "Groceries",
+  "color": "#4CAF50",
+  "icon": "shopping-cart"
+}
+```
+
+<Note>
+If the category doesn't exist or belongs to another user, you'll receive a `404 Not Found` error.
+</Note>
+
+---
+
+## Category Transactions
+
+Retrieve all transactions associated with a specific category.
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://api.expensia.com/category/1/transactions" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+```python Python
+category_id = 1
+response = requests.get(
+    f"https://api.expensia.com/category/{category_id}/transactions",
+    headers={"Authorization": "Bearer YOUR_TOKEN"}
+)
+
+data = response.json()
+print(f"Category {data['category_id']} has {len(data['transactions'])} transactions")
+```
+</CodeGroup>
+
+**Response (200 OK):**
+```json
+{
+  "category_id": 1,
+  "transactions": [
+    {
+      "transaction_type": "expense",
+      "amount": 45.50,
+      "note": "Weekly groceries",
+      "category_id": 1,
+      "transaction_date": "2024-01-15"
+    },
+    {
+      "transaction_type": "expense",
+      "amount": 32.00,
+      "note": "Vegetables and fruits",
+      "category_id": 1,
+      "transaction_date": "2024-01-10"
+    }
+  ]
+}
+```
+
+<Info>
+This endpoint is useful for:
+- Analyzing spending patterns by category
+- Generating category-specific reports
+- Calculating totals per category
+- Displaying transactions in a filtered view
+</Info>
+
+---
+
+## Deleting Categories
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE "https://api.expensia.com/category/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+```python Python
+category_id = 1
+response = requests.delete(
+    f"https://api.expensia.com/category/{category_id}",
+    headers={"Authorization": "Bearer YOUR_TOKEN"}
+)
+
+print(response.json())
+```
+</CodeGroup>
+
+**Response (200 OK):**
+```json
+{
+  "message": "Category deleted successfully"
+}
+```
+
+<Warning>
+**Important considerations when deleting categories:**
+
+- Only categories belonging to the authenticated user can be deleted
+- Transactions associated with the deleted category will **not** be deleted
+- The `category_id` field in those transactions will be set to `null`
+- Attempting to delete a non-existent category returns a `404 Not Found` error
+</Warning>
+
+---
+
+## Category Ownership & Security
+
+The API enforces strict category ownership rules:
+
+<AccordionGroup>
+  <Accordion title="Creating transactions with categories">
+    When creating or updating a transaction with a `category_id`, the API validates that:
+    
+    1. The category exists
+    2. The category belongs to the authenticated user
+    
+    ```python
+    # From routes/transactionRoutes.py:134-145
+    category = (
+        db.query(models.Category)
+        .filter(
+            models.Category.id == category_id,
+            models.Category.user_id == currentUser.id,
+        )
+        .first()
+    )
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    ```
+    
+    This prevents users from assigning transactions to categories they don't own.
+  </Accordion>
+
+  <Accordion title="Unique constraint on category names">
+    Category names are unique per user, enforced at the database level:
+    
+    ```python
+    # From db/models.py:59-61
+    __table_args__ = (
+        UniqueConstraint("user_id", "name", name="uq_user_category_name"),
+    )
+    ```
+    
+    This means:
+    - You can have a category named "Food"
+    - Another user can also have a category named "Food"
+    - But you cannot create two categories with the same name
+  </Accordion>
+
+  <Accordion title="Category retrieval">
+    All category endpoints filter by the authenticated user's ID:
+    
+    ```python
+    # From routes/categoryRoutes.py:22
+    categories = db.query(models.Category).filter(
+        models.Category.user_id == currentUser.id
+    ).all()
+    ```
+    
+    This ensures users can only see and manage their own categories.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Keep it simple" icon="lightbulb">
+    Start with 5-10 broad categories. Too many categories can make organization overwhelming.
+  </Card>
+  
+  <Card title="Use consistent naming" icon="spell-check">
+    Use clear, descriptive names like "Food & Dining" instead of ambiguous names like "Stuff".
+  </Card>
+  
+  <Card title="Color coding" icon="palette">
+    Choose distinct colors for each category to make visual identification easier in charts and lists.
+  </Card>
+  
+  <Card title="Plan before deleting" icon="trash">
+    Remember that deleting a category doesn't delete transactions, but it removes the category association.
+  </Card>
+</CardGroup>
+
+---
+
+## Common Use Cases
+
+<Accordion title="Budget tracking by category">
+```python
+# Get all categories
+response = requests.get(
+    "https://api.expensia.com/categories",
+    headers={"Authorization": "Bearer YOUR_TOKEN"}
+)
+categories = response.json()["categories"]
+
+# For each category, get transactions and calculate total
+for category in categories:
+    txn_response = requests.get(
+        f"https://api.expensia.com/category/{category['id']}/transactions",
+        headers={"Authorization": "Bearer YOUR_TOKEN"}
+    )
+    transactions = txn_response.json()["transactions"]
+    
+    total = sum(txn["amount"] for txn in transactions)
+    print(f"{category['name']}: ${total:.2f}")
+```
+</Accordion>
+
+<Accordion title="Bulk category creation">
+```python
+categories_to_create = [
+    {"name": "Food", "color": "#FF6B6B", "icon": "utensils"},
+    {"name": "Transport", "color": "#4ECDC4", "icon": "car"},
+    {"name": "Entertainment", "color": "#95E1D3", "icon": "film"},
+]
+
+for category_data in categories_to_create:
+    response = requests.post(
+        "https://api.expensia.com/categories",
+        headers={"Authorization": "Bearer YOUR_TOKEN"},
+        json=category_data
+    )
+    if response.status_code == 201:
+        print(f"Created: {category_data['name']}")
+    elif response.status_code == 409:
+        print(f"Already exists: {category_data['name']}")
+```
+</Accordion>
+
+---
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="API Reference - Categories" icon="book" href="/api-reference/categories/list-categories">
+    Complete API endpoint documentation
+  </Card>
+  <Card title="Transaction Management" icon="exchange-alt" href="/guides/transactions">
+    Learn how to create transactions with categories
+  </Card>
+  <Card title="Error Handling" icon="exclamation-triangle" href="/guides/error-handling">
+    Common category-related errors
+  </Card>
+</CardGroup>

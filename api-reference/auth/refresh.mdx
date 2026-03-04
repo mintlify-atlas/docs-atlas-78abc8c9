@@ -1,0 +1,78 @@
+---
+title: 'Refresh Access Token'
+api: 'POST /refresh'
+description: 'Obtain a new access token using a refresh token'
+---
+
+## Request Body
+
+<ParamField body="refresh_token" type="string" required>
+  The refresh token received from the login endpoint
+</ParamField>
+
+## Response
+
+<ResponseField name="user_id" type="integer">
+  The unique identifier of the user
+</ResponseField>
+
+<ResponseField name="access_token" type="string">
+  New JWT access token for authenticating API requests
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X POST https://api.expensia.com/refresh \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }'
+```
+
+```json Request
+{
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200 - Success
+{
+  "user_id": 42,
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+```json 401 - Invalid or Expired Token
+{
+  "detail": "Invalid or expired token"
+}
+```
+
+```json 401 - Invalid Token Payload
+{
+  "detail": "Invalid token payload"
+}
+```
+
+```json 401 - User Not Found
+{
+  "detail": "User not found"
+}
+```
+
+</ResponseExample>
+
+## Notes
+
+- The refresh token must contain a valid `refresh` flag in its payload
+- The token must contain a `sub` (subject) claim with the user ID
+- The user associated with the token must still exist in the database
+- Returns a new access token with standard expiration time
+- The refresh token itself is not renewed (remains valid until its expiration)
+- Returns HTTP 200 on success
+- Returns HTTP 401 for invalid, expired, or malformed tokens

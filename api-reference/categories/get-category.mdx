@@ -1,0 +1,73 @@
+---
+title: 'Get Category'
+api: 'GET /category/{id}'
+description: 'Retrieve a specific category by ID'
+---
+
+## Authentication
+
+This endpoint requires authentication. Include a valid JWT token in the Authorization header.
+
+## Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the category to retrieve
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="integer">
+  Unique identifier for the category
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Name of the category
+</ResponseField>
+
+<ResponseField name="color" type="string">
+  Color code for the category (e.g., hex color)
+</ResponseField>
+
+<ResponseField name="icon" type="string">
+  Icon identifier for the category
+</ResponseField>
+
+## Example Request
+
+```bash cURL
+curl -X GET "https://api.expensia.com/category/1" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+## Example Response
+
+```json
+{
+  "id": 1,
+  "name": "Groceries",
+  "color": "#4CAF50",
+  "icon": "shopping-cart"
+}
+```
+
+## Error Responses
+
+<ResponseField name="404" type="Not Found">
+  Category not found or does not belong to the authenticated user
+  
+  ```json
+  {
+    "detail": "Category not found"
+  }
+  ```
+</ResponseField>
+
+<ResponseField name="401" type="Unauthorized">
+  Missing or invalid authentication token
+</ResponseField>
+
+## Response Codes
+
+<ResponseField name="200" type="Success">
+  Category retrieved successfully
+</ResponseField>

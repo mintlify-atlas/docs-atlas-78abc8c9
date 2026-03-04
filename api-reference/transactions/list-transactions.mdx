@@ -1,0 +1,196 @@
+---
+title: "List Transactions"
+api: "GET /transactions"
+description: "Retrieve all transactions for the authenticated user with optional date filtering"
+---
+
+Returns a list of all transactions for the authenticated user, ordered by transaction date (newest first). You can optionally filter transactions by a date range using millisecond timestamps.
+
+## Authentication
+
+Requires a valid Bearer token in the Authorization header.
+
+## Query Parameters
+
+<ParamField query="start_date_ms" type="integer" optional>
+  Start date filter in milliseconds since Unix epoch. Must be a positive integer. When provided, only transactions on or after this date will be returned (inclusive, at 00:00:00).
+  
+  **Validation:**
+  - Must be >= 0
+  - Cannot be greater than `end_date_ms` if both are provided
+</ParamField>
+
+<ParamField query="end_date_ms" type="integer" optional>
+  End date filter in milliseconds since Unix epoch. Must be a positive integer. When provided, only transactions up to and including this date will be returned (inclusive, until 23:59:59).
+  
+  **Validation:**
+  - Must be >= 0
+  - Cannot be less than `start_date_ms` if both are provided
+</ParamField>
+
+## Response
+
+<ResponseField name="start_date_ms" type="integer" optional>
+  The start date filter that was applied (only returned if provided in request)
+</ResponseField>
+
+<ResponseField name="end_date_ms" type="integer" optional>
+  The end date filter that was applied (only returned if provided in request)
+</ResponseField>
+
+<ResponseField name="transactions" type="array">
+  Array of transaction objects
+  
+  <ResponseField name="id" type="integer">
+    Unique transaction identifier
+  </ResponseField>
+  
+  <ResponseField name="transaction_type" type="string">
+    Type of transaction. Enum: `income`, `expense`
+  </ResponseField>
+  
+  <ResponseField name="amount" type="float">
+    Transaction amount
+  </ResponseField>
+  
+  <ResponseField name="note" type="string" optional>
+    Optional note or description for the transaction
+  </ResponseField>
+  
+  <ResponseField name="category_id" type="integer" optional>
+    ID of the associated category (if assigned)
+  </ResponseField>
+  
+  <ResponseField name="transaction_date" type="datetime" optional>
+    Date when the transaction occurred
+  </ResponseField>
+  
+  <ResponseField name="created_date" type="datetime">
+    Timestamp when the transaction was created
+  </ResponseField>
+  
+  <ResponseField name="updated_date" type="datetime">
+    Timestamp when the transaction was last updated
+  </ResponseField>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url 'https://api.expensia.com/transactions?start_date_ms=1704067200000&end_date_ms=1706745599000' \
+  --header 'Authorization: Bearer <token>'
+```
+
+```python Python
+import requests
+
+url = "https://api.expensia.com/transactions"
+headers = {"Authorization": "Bearer <token>"}
+params = {
+    "start_date_ms": 1704067200000,
+    "end_date_ms": 1706745599000
+}
+
+response = requests.get(url, headers=headers, params=params)
+print(response.json())
+```
+
+```javascript JavaScript
+const response = await fetch(
+  'https://api.expensia.com/transactions?start_date_ms=1704067200000&end_date_ms=1706745599000',
+  {
+    method: 'GET',
+    headers: {
+      'Authorization': 'Bearer <token>'
+    }
+  }
+);
+
+const data = await response.json();
+console.log(data);
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json With Date Filter
+{
+  "start_date_ms": 1704067200000,
+  "end_date_ms": 1706745599000,
+  "transactions": [
+    {
+      "id": 123,
+      "transaction_type": "expense",
+      "amount": 45.50,
+      "note": "Grocery shopping",
+      "category_id": 5,
+      "transaction_date": "2024-01-15T00:00:00Z",
+      "created_date": "2024-01-15T10:30:00Z",
+      "updated_date": "2024-01-15T10:30:00Z"
+    },
+    {
+      "id": 122,
+      "transaction_type": "income",
+      "amount": 2500.00,
+      "note": "Monthly salary",
+      "category_id": 1,
+      "transaction_date": "2024-01-01T00:00:00Z",
+      "created_date": "2024-01-01T08:00:00Z",
+      "updated_date": "2024-01-01T08:00:00Z"
+    }
+  ]
+}
+```
+
+```json Without Date Filter
+{
+  "transactions": [
+    {
+      "id": 125,
+      "transaction_type": "expense",
+      "amount": 89.99,
+      "note": "Electric bill",
+      "category_id": 3,
+      "transaction_date": "2024-02-10T00:00:00Z",
+      "created_date": "2024-02-10T14:20:00Z",
+      "updated_date": "2024-02-10T14:20:00Z"
+    },
+    {
+      "id": 124,
+      "transaction_type": "income",
+      "amount": 150.00,
+      "note": "Freelance project",
+      "category_id": null,
+      "transaction_date": "2024-02-05T00:00:00Z",
+      "created_date": "2024-02-05T16:45:00Z",
+      "updated_date": "2024-02-05T16:45:00Z"
+    }
+  ]
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseField name="400" type="error">
+  Bad Request - Invalid date parameters
+  
+  **Possible error messages:**
+  - `start_date_ms must be positive`
+  - `end_date_ms must be positive`
+  - `start_date cannot be greater than end_date`
+</ResponseField>
+
+<ResponseField name="401" type="error">
+  Unauthorized - Invalid or missing authentication token
+</ResponseField>
+
+## Notes
+
+- Transactions are always ordered by `transaction_date` in descending order (newest first)
+- The date filter uses UTC time zone and sets the start time to 00:00:00 and end time to 23:59:59
+- If no date filters are provided, all transactions for the user are returned
+- Only transactions belonging to the authenticated user are returned

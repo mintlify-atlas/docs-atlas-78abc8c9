@@ -1,0 +1,129 @@
+---
+title: "Get Transaction"
+api: "GET /transactions/{id}"
+description: "Retrieve a single transaction by ID"
+---
+
+Fetches detailed information about a specific transaction. The transaction must belong to the authenticated user.
+
+## Authentication
+
+Requires a valid Bearer token in the Authorization header.
+
+## Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the transaction to retrieve
+</ParamField>
+
+## Response
+
+<ResponseField name="transaction" type="object">
+  The transaction object
+  
+  <ResponseField name="id" type="integer">
+    Unique transaction identifier
+  </ResponseField>
+  
+  <ResponseField name="transaction_type" type="string">
+    Type of transaction. Enum: `income`, `expense`
+  </ResponseField>
+  
+  <ResponseField name="amount" type="float">
+    Transaction amount
+  </ResponseField>
+  
+  <ResponseField name="note" type="string" optional>
+    Optional note or description for the transaction
+  </ResponseField>
+  
+  <ResponseField name="category_id" type="integer" optional>
+    ID of the associated category (if assigned)
+  </ResponseField>
+  
+  <ResponseField name="transaction_date" type="datetime" optional>
+    Date when the transaction occurred
+  </ResponseField>
+  
+  <ResponseField name="created_date" type="datetime">
+    Timestamp when the transaction was created
+  </ResponseField>
+  
+  <ResponseField name="updated_date" type="datetime">
+    Timestamp when the transaction was last updated
+  </ResponseField>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url https://api.expensia.com/transactions/123 \
+  --header 'Authorization: Bearer <token>'
+```
+
+```python Python
+import requests
+
+url = "https://api.expensia.com/transactions/123"
+headers = {"Authorization": "Bearer <token>"}
+
+response = requests.get(url, headers=headers)
+print(response.json())
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.expensia.com/transactions/123', {
+  method: 'GET',
+  headers: {
+    'Authorization': 'Bearer <token>'
+  }
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "transaction": {
+    "id": 123,
+    "transaction_type": "expense",
+    "amount": 45.50,
+    "note": "Grocery shopping at local market",
+    "category_id": 5,
+    "transaction_date": "2024-01-15T00:00:00Z",
+    "created_date": "2024-01-15T10:30:00Z",
+    "updated_date": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+```json 404
+{
+  "detail": "Transaction not found"
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseField name="401" type="error">
+  Unauthorized - Invalid or missing authentication token
+</ResponseField>
+
+<ResponseField name="404" type="error">
+  Not Found - Transaction does not exist or does not belong to the authenticated user
+  
+  **Error message:** `Transaction not found`
+</ResponseField>
+
+## Notes
+
+- The transaction must belong to the authenticated user, otherwise a 404 error is returned
+- This endpoint is useful for retrieving full details of a specific transaction before updating or deleting it

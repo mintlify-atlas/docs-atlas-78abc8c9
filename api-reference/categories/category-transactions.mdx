@@ -1,0 +1,106 @@
+---
+title: 'Get Category Transactions'
+api: 'GET /category/{id}/transactions'
+description: 'Retrieve all transactions associated with a specific category'
+---
+
+## Authentication
+
+This endpoint requires authentication. Include a valid JWT token in the Authorization header.
+
+## Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the category
+</ParamField>
+
+## Response
+
+<ResponseField name="category_id" type="integer">
+  The ID of the category
+</ResponseField>
+
+<ResponseField name="transactions" type="array">
+  Array of transaction objects associated with this category
+  
+  <Expandable title="Transaction Object">
+    <ResponseField name="id" type="integer">
+      Unique identifier for the transaction
+    </ResponseField>
+    
+    <ResponseField name="amount" type="number">
+      Transaction amount
+    </ResponseField>
+    
+    <ResponseField name="description" type="string">
+      Description of the transaction
+    </ResponseField>
+    
+    <ResponseField name="date" type="string">
+      Date of the transaction
+    </ResponseField>
+    
+    <ResponseField name="category_id" type="integer">
+      ID of the associated category
+    </ResponseField>
+    
+    <ResponseField name="user_id" type="integer">
+      ID of the user who created the transaction
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example Request
+
+```bash cURL
+curl -X GET "https://api.expensia.com/category/1/transactions" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+## Example Response
+
+```json
+{
+  "category_id": 1,
+  "transactions": [
+    {
+      "id": 101,
+      "amount": 52.35,
+      "description": "Weekly grocery shopping",
+      "date": "2026-03-01",
+      "category_id": 1,
+      "user_id": 5
+    },
+    {
+      "id": 108,
+      "amount": 28.50,
+      "description": "Fresh produce from farmer's market",
+      "date": "2026-03-03",
+      "category_id": 1,
+      "user_id": 5
+    }
+  ]
+}
+```
+
+## Error Responses
+
+<ResponseField name="404" type="Not Found">
+  Category not found or does not belong to the authenticated user
+  
+  ```json
+  {
+    "detail": "Category not found"
+  }
+  ```
+</ResponseField>
+
+<ResponseField name="401" type="Unauthorized">
+  Missing or invalid authentication token
+</ResponseField>
+
+## Response Codes
+
+<ResponseField name="200" type="Success">
+  Category transactions retrieved successfully
+</ResponseField>

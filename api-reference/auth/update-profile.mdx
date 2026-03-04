@@ -1,0 +1,109 @@
+---
+title: Update Profile
+api: PATCH /update-profile
+description: Update the authenticated user's profile information
+---
+
+<Note>
+  This endpoint requires authentication. Include a valid access token in the Authorization header.
+</Note>
+
+## Authentication
+
+This endpoint requires a Bearer token in the Authorization header:
+
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+## Request Body
+
+<ParamField body="name" type="string" optional>
+  The user's new name. If not provided, name remains unchanged.
+</ParamField>
+
+<ParamField body="email" type="string" optional>
+  The user's new email address. Must be a valid email format and deliverable. If not provided, email remains unchanged.
+</ParamField>
+
+## Response
+
+<ResponseField name="user_id" type="integer">
+  The unique identifier of the updated user
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Success message confirming profile update
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X PATCH https://api.expensia.com/update-profile \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Jane Doe",
+    "email": "jane.doe@example.com"
+  }'
+```
+
+```json Request - Update Both Fields
+{
+  "name": "Jane Doe",
+  "email": "jane.doe@example.com"
+}
+```
+
+```json Request - Update Name Only
+{
+  "name": "Jane Doe"
+}
+```
+
+```json Request - Update Email Only
+{
+  "email": "jane.doe@example.com"
+}
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200 - Success
+{
+  "user_id": 42,
+  "message": "Profile updated successfully"
+}
+```
+
+```json 400 - Invalid Email
+{
+  "detail": "Invalid email"
+}
+```
+
+```json 409 - Email Already Exists
+{
+  "detail": "Email already exists"
+}
+```
+
+```json 401 - Unauthorized
+{
+  "detail": "Not authenticated"
+}
+```
+
+</ResponseExample>
+
+## Notes
+
+- Both fields are optional - you can update either or both
+- Email validation includes deliverability checks
+- Email addresses are normalized to prevent duplicates
+- If email is already used by another user, returns HTTP 409
+- Returns HTTP 200 on success
+- Returns HTTP 400 if email format is invalid
+- Returns HTTP 401 if authentication fails

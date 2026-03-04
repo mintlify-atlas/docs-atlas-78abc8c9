@@ -1,0 +1,187 @@
+---
+title: "Update Transaction"
+api: "PUT /transactions/{id}"
+description: "Update an existing transaction"
+---
+
+Updates an existing transaction for the authenticated user. The user's balance is automatically recalculated:
+
+1. The old transaction is reversed (removed from balance)
+2. The new transaction values are applied to balance
+
+This ensures the balance always reflects the current state of all transactions.
+
+## Authentication
+
+Requires a valid Bearer token in the Authorization header.
+
+## Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the transaction to update
+</ParamField>
+
+## Request Body
+
+<ParamField body="transaction_type" type="string" required>
+  The type of transaction. Must be one of:
+  - `income` - Money received
+  - `expense` - Money spent
+</ParamField>
+
+<ParamField body="amount" type="float" required>
+  The transaction amount. Must be a positive number.
+</ParamField>
+
+<ParamField body="note" type="string" optional>
+  Optional note or description for the transaction
+</ParamField>
+
+<ParamField body="category_id" type="integer" optional>
+  ID of the category to associate with this transaction. The category must belong to the authenticated user.
+  
+  **Validation:**
+  - If provided, the category must exist and belong to the user
+  - Returns 404 error if category not found
+</ParamField>
+
+<ParamField body="transaction_date" type="date" optional>
+  The date when the transaction occurred. Format: `YYYY-MM-DD`
+</ParamField>
+
+## Response
+
+<ResponseField name="transaction_id" type="integer">
+  The unique identifier of the updated transaction
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Confirmation message: `Transaction updated successfully`
+</ResponseField>
+
+<ResponseField name="current_balance" type="integer">
+  The user's updated balance after recalculating with the new transaction values
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl --request PUT \
+  --url https://api.expensia.com/transactions/129 \
+  --header 'Authorization: Bearer <token>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "transaction_type": "expense",
+    "amount": 52.75,
+    "note": "Grocery shopping - updated amount",
+    "category_id": 5,
+    "transaction_date": "2024-03-04"
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://api.expensia.com/transactions/129"
+headers = {
+    "Authorization": "Bearer <token>",
+    "Content-Type": "application/json"
+}
+data = {
+    "transaction_type": "expense",
+    "amount": 52.75,
+    "note": "Grocery shopping - updated amount",
+    "category_id": 5,
+    "transaction_date": "2024-03-04"
+}
+
+response = requests.put(url, headers=headers, json=data)
+print(response.json())
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.expensia.com/transactions/129', {
+  method: 'PUT',
+  headers: {
+    'Authorization': 'Bearer <token>',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    transaction_type: 'expense',
+    amount: 52.75,
+    note: 'Grocery shopping - updated amount',
+    category_id: 5,
+    transaction_date: '2024-03-04'
+  })
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "transaction_id": 129,
+  "message": "Transaction updated successfully",
+  "current_balance": 1947
+}
+```
+
+```json 404 - Transaction Not Found
+{
+  "detail": "Transaction not found"
+}
+```
+
+```json 404 - Category Not Found
+{
+  "detail": "Category not found"
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseField name="401" type="error">
+  Unauthorized - Invalid or missing authentication token
+</ResponseField>
+
+<ResponseField name="404" type="error">
+  Not Found - Transaction or category does not exist or does not belong to the authenticated user
+  
+  **Possible error messages:**
+  - `Transaction not found` - Transaction doesn't exist or doesn't belong to user
+  - `Category not found` - Category doesn't exist or doesn't belong to user
+</ResponseField>
+
+<ResponseField name="422" type="error">
+  Unprocessable Entity - Invalid request body (e.g., invalid transaction_type, missing required fields)
+</ResponseField>
+
+## Balance Recalculation
+
+When a transaction is updated, the balance is recalculated in two steps:
+
+### Step 1: Reverse the old transaction
+- If old transaction was **income**: `current_balance -= old_amount` and `total_income -= old_amount`
+- If old transaction was **expense**: `current_balance += old_amount` and `total_expenses -= old_amount`
+
+### Step 2: Apply the new transaction
+- If new transaction is **income**: `current_balance += new_amount` and `total_income += new_amount`
+- If new transaction is **expense**: `current_balance -= new_amount` and `total_expenses += new_amount`
+
+This ensures the balance always reflects the accurate sum of all transactions.
+
+## Notes
+
+- The transaction must belong to the authenticated user
+- All fields in the request body are required (this is a full update, not a partial update)
+- Balance recalculation is performed atomically within a database transaction
+- If the database commit fails, all changes are rolled back
+- The `updated_date` field is automatically updated to the current timestamp
+- Category validation ensures users can only assign transactions to their own categories

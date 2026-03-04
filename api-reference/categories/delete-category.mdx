@@ -1,0 +1,63 @@
+---
+title: 'Delete Category'
+api: 'DELETE /category/{id}'
+description: 'Delete a specific category by ID'
+---
+
+## Authentication
+
+This endpoint requires authentication. Include a valid JWT token in the Authorization header.
+
+## Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the category to delete
+</ParamField>
+
+## Response
+
+<ResponseField name="message" type="string">
+  Confirmation message indicating successful deletion
+</ResponseField>
+
+## Example Request
+
+```bash cURL
+curl -X DELETE "https://api.expensia.com/category/1" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+## Example Response
+
+```json
+{
+  "message": "Category deleted successfully"
+}
+```
+
+## Error Responses
+
+<ResponseField name="404" type="Not Found">
+  Category not found or does not belong to the authenticated user
+  
+  ```json
+  {
+    "detail": "Category not found"
+  }
+  ```
+</ResponseField>
+
+<ResponseField name="401" type="Unauthorized">
+  Missing or invalid authentication token
+</ResponseField>
+
+## Response Codes
+
+<ResponseField name="200" type="Success">
+  Category deleted successfully
+</ResponseField>
+
+## Notes
+
+- Only categories belonging to the authenticated user can be deleted.
+- Deleting a category may affect associated transactions. Ensure you handle transaction references appropriately before deleting a category.

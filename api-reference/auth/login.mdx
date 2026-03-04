@@ -1,0 +1,78 @@
+---
+title: 'Login'
+api: 'POST /login'
+description: 'Authenticate a user and receive access tokens'
+---
+
+## Request Body
+
+<ParamField body="email" type="string" required>
+  The user's registered email address
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The user's password
+</ParamField>
+
+## Response
+
+<ResponseField name="user_id" type="integer">
+  The unique identifier of the authenticated user
+</ResponseField>
+
+<ResponseField name="access_token" type="string">
+  JWT access token for authenticating API requests. Used in the Authorization header as a Bearer token.
+</ResponseField>
+
+<ResponseField name="refresh_token" type="string">
+  JWT refresh token for obtaining new access tokens. Valid for multiple days (configured server-side).
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X POST https://api.expensia.com/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "password": "securePassword123"
+  }'
+```
+
+```json Request
+{
+  "email": "john.doe@example.com",
+  "password": "securePassword123"
+}
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200 - Success
+{
+  "user_id": 42,
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+```json 401 - Invalid Credentials
+{
+  "detail": "Invalid email or password"
+}
+```
+
+</ResponseExample>
+
+## Notes
+
+- Email is normalized before lookup
+- Password is verified against the stored hash
+- Both access and refresh tokens are JWT tokens
+- Access tokens have a shorter expiration time
+- Refresh tokens can be used to obtain new access tokens via the `/refresh` endpoint
+- Store the refresh token securely for long-term sessions
+- Returns HTTP 200 on successful authentication
+- Returns HTTP 401 if credentials are invalid

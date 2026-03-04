@@ -1,0 +1,177 @@
+---
+title: "Create Transaction"
+api: "POST /transactions"
+description: "Create a new income or expense transaction"
+---
+
+Creates a new transaction for the authenticated user. The user's balance is automatically updated based on the transaction type:
+
+- **Income**: Adds to `current_balance` and `total_income`
+- **Expense**: Subtracts from `current_balance` and adds to `total_expenses`
+
+The user's `total_transactions` counter is also incremented.
+
+## Authentication
+
+Requires a valid Bearer token in the Authorization header.
+
+## Request Body
+
+<ParamField body="transaction_type" type="string" required>
+  The type of transaction. Must be one of:
+  - `income` - Money received
+  - `expense` - Money spent
+</ParamField>
+
+<ParamField body="amount" type="float" required>
+  The transaction amount. Must be a positive number.
+</ParamField>
+
+<ParamField body="note" type="string" optional>
+  Optional note or description for the transaction (e.g., "Grocery shopping", "Monthly salary")
+</ParamField>
+
+<ParamField body="category_id" type="integer" optional>
+  ID of the category to associate with this transaction. The category must belong to the authenticated user.
+  
+  **Validation:**
+  - If provided, the category must exist and belong to the user
+  - Returns 404 error if category not found
+</ParamField>
+
+<ParamField body="transaction_date" type="date" optional>
+  The date when the transaction occurred. Format: `YYYY-MM-DD`
+  
+  If not provided, defaults to the current date.
+</ParamField>
+
+## Response
+
+<ResponseField name="transaction_id" type="integer">
+  The unique identifier of the newly created transaction
+</ResponseField>
+
+<ResponseField name="current_balance" type="integer">
+  The user's updated balance after the transaction
+  
+  **Balance Calculation:**
+  - For `income`: previous balance + amount
+  - For `expense`: previous balance - amount
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl --request POST \
+  --url https://api.expensia.com/transactions \
+  --header 'Authorization: Bearer <token>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "transaction_type": "expense",
+    "amount": 45.50,
+    "note": "Grocery shopping",
+    "category_id": 5,
+    "transaction_date": "2024-03-04"
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://api.expensia.com/transactions"
+headers = {
+    "Authorization": "Bearer <token>",
+    "Content-Type": "application/json"
+}
+data = {
+    "transaction_type": "expense",
+    "amount": 45.50,
+    "note": "Grocery shopping",
+    "category_id": 5,
+    "transaction_date": "2024-03-04"
+}
+
+response = requests.post(url, headers=headers, json=data)
+print(response.json())
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.expensia.com/transactions', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer <token>',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    transaction_type: 'expense',
+    amount: 45.50,
+    note: 'Grocery shopping',
+    category_id: 5,
+    transaction_date: '2024-03-04'
+  })
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Expense Transaction
+{
+  "transaction_id": 129,
+  "current_balance": 1954
+}
+```
+
+```json Income Transaction
+{
+  "transaction_id": 130,
+  "current_balance": 4454
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseField name="401" type="error">
+  Unauthorized - Invalid or missing authentication token
+</ResponseField>
+
+<ResponseField name="404" type="error">
+  Not Found - Category does not exist or does not belong to the authenticated user
+  
+  **Error message:** `Category not found`
+</ResponseField>
+
+<ResponseField name="422" type="error">
+  Unprocessable Entity - Invalid request body (e.g., invalid transaction_type, missing required fields)
+</ResponseField>
+
+## Balance Calculation
+
+When a transaction is created, the following user fields are updated:
+
+1. **current_balance**: 
+   - Income: `current_balance += amount`
+   - Expense: `current_balance -= amount`
+
+2. **total_income**: 
+   - Income: `total_income += amount`
+   - Expense: No change
+
+3. **total_expenses**: 
+   - Income: No change
+   - Expense: `total_expenses += amount`
+
+4. **total_transactions**: Always incremented by 1
+
+## Notes
+
+- All balance updates are performed atomically within a database transaction
+- If the database commit fails, all changes are rolled back
+- The `transaction_date` is converted to datetime with time set to 00:00:00
+- Category validation ensures users can only assign transactions to their own categories

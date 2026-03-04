@@ -1,0 +1,152 @@
+---
+title: "Get Recent Transactions"
+api: "GET /transactions/recent"
+description: "Retrieve transactions from the last 3 days"
+---
+
+Fetches all transactions for the authenticated user from the last 3 days, ordered by transaction date (newest first). This endpoint is useful for displaying recent activity on dashboards or home screens.
+
+## Authentication
+
+Requires a valid Bearer token in the Authorization header.
+
+## Response
+
+<ResponseField name="message" type="string">
+  Status message indicating the result
+  
+  **Possible values:**
+  - `Recent transactions retrieved successfully` - When transactions are found
+  - `No recent transactions found` - When no transactions exist in the last 3 days
+</ResponseField>
+
+<ResponseField name="transactions" type="array">
+  Array of transaction objects from the last 3 days
+  
+  <ResponseField name="id" type="integer">
+    Unique transaction identifier
+  </ResponseField>
+  
+  <ResponseField name="transaction_type" type="string">
+    Type of transaction. Enum: `income`, `expense`
+  </ResponseField>
+  
+  <ResponseField name="amount" type="float">
+    Transaction amount
+  </ResponseField>
+  
+  <ResponseField name="note" type="string" optional>
+    Optional note or description for the transaction
+  </ResponseField>
+  
+  <ResponseField name="category_id" type="integer" optional>
+    ID of the associated category (if assigned)
+  </ResponseField>
+  
+  <ResponseField name="transaction_date" type="datetime" optional>
+    Date when the transaction occurred
+  </ResponseField>
+  
+  <ResponseField name="created_date" type="datetime">
+    Timestamp when the transaction was created
+  </ResponseField>
+  
+  <ResponseField name="updated_date" type="datetime">
+    Timestamp when the transaction was last updated
+  </ResponseField>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url https://api.expensia.com/transactions/recent \
+  --header 'Authorization: Bearer <token>'
+```
+
+```python Python
+import requests
+
+url = "https://api.expensia.com/transactions/recent"
+headers = {"Authorization": "Bearer <token>"}
+
+response = requests.get(url, headers=headers)
+print(response.json())
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.expensia.com/transactions/recent', {
+  method: 'GET',
+  headers: {
+    'Authorization': 'Bearer <token>'
+  }
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json With Transactions
+{
+  "message": "Recent transactions retrieved successfully",
+  "transactions": [
+    {
+      "id": 128,
+      "transaction_type": "expense",
+      "amount": 12.50,
+      "note": "Coffee and snacks",
+      "category_id": 8,
+      "transaction_date": "2024-03-04T00:00:00Z",
+      "created_date": "2024-03-04T09:15:00Z",
+      "updated_date": "2024-03-04T09:15:00Z"
+    },
+    {
+      "id": 127,
+      "transaction_type": "income",
+      "amount": 500.00,
+      "note": "Bonus payment",
+      "category_id": 1,
+      "transaction_date": "2024-03-03T00:00:00Z",
+      "created_date": "2024-03-03T14:30:00Z",
+      "updated_date": "2024-03-03T14:30:00Z"
+    },
+    {
+      "id": 126,
+      "transaction_type": "expense",
+      "amount": 65.00,
+      "note": "Gas station",
+      "category_id": 4,
+      "transaction_date": "2024-03-02T00:00:00Z",
+      "created_date": "2024-03-02T17:45:00Z",
+      "updated_date": "2024-03-02T17:45:00Z"
+    }
+  ]
+}
+```
+
+```json No Transactions
+{
+  "message": "No recent transactions found",
+  "transactions": []
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseField name="401" type="error">
+  Unauthorized - Invalid or missing authentication token
+</ResponseField>
+
+## Notes
+
+- The "last 3 days" is calculated from the current UTC time
+- Transactions are ordered by `transaction_date` in descending order (newest first)
+- An empty array is returned if no transactions exist in the time range
+- Only transactions belonging to the authenticated user are returned
+- This endpoint does not accept any query parameters - the 3-day window is fixed

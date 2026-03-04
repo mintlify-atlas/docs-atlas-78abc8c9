@@ -1,97 +1,267 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: Introduction
+description: Welcome to Expensia, a powerful RESTful API for personal finance management
 ---
 
-## Setting up
+<div className="relative overflow-hidden bg-gradient-to-br from-[#10B981] to-[#059669] dark:from-[#059669] dark:to-[#047857] py-20">
+  <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
+      <div className="lg:col-span-7">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+          Expensia API Documentation
+        </h1>
+        <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl">
+          Build powerful personal finance applications with our secure, feature-rich REST API. Track income, expenses, and gain financial insights with ease.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <a 
+            href="/quickstart" 
+            className="inline-flex items-center px-6 py-3 rounded-lg bg-white text-[#10B981] font-semibold hover:bg-gray-100 transition-colors"
+          >
+            Get Started
+          </a>
+          <a 
+            href="/api-reference/auth/register" 
+            className="inline-flex items-center px-6 py-3 rounded-lg border-2 border-white/30 bg-white/10 text-white font-semibold hover:bg-white/20 transition-colors"
+          >
+            API Reference
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+    Quick start
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Get up and running with Expensia in minutes
+  </p>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+  <Steps>
+    <Step title="Register a new user account">
+      Create your first user account using the registration endpoint.
 
-## Make it yours
+      ```bash cURL
+      curl -X POST https://api.expensia.com/register \
+        -H "Content-Type: application/json" \
+        -d '{
+          "name": "John Doe",
+          "email": "john@example.com",
+          "password": "securepassword123"
+        }'
+      ```
 
-Design a docs site that looks great and empowers your users.
+      <Accordion title="Response">
+        ```json
+        {
+          "user_id": 1,
+          "message": "User created successfully"
+        }
+        ```
+      </Accordion>
+    </Step>
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+    <Step title="Authenticate and get access tokens">
+      Login with your credentials to receive JWT access and refresh tokens.
 
-## Create beautiful pages
+      ```bash cURL
+      curl -X POST https://api.expensia.com/login \
+        -H "Content-Type: application/json" \
+        -d '{
+          "email": "john@example.com",
+          "password": "securepassword123"
+        }'
+      ```
 
-Everything you need to create world-class documentation.
+      <Accordion title="Response">
+        ```json
+        {
+          "user_id": 1,
+          "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+        ```
+      </Accordion>
+    </Step>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+    <Step title="Create your first transaction">
+      Start tracking your finances by creating a transaction.
 
-## Need inspiration?
+      ```bash cURL
+      curl -X POST https://api.expensia.com/transactions \
+        -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "transaction_type": "expense",
+          "amount": 50.00,
+          "note": "Grocery shopping",
+          "category_id": 1,
+          "transaction_date": "2026-03-04T10:00:00"
+        }'
+      ```
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+      <Accordion title="Response">
+        ```json
+        {
+          "transaction_id": 1,
+          "current_balance": -50.00
+        }
+        ```
+      </Accordion>
+    </Step>
+
+    <Step title="Retrieve your transactions">
+      View all your financial transactions and monitor your balance.
+
+      ```bash cURL
+      curl -X GET https://api.expensia.com/transactions \
+        -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+      ```
+
+      Learn more in the [Transactions Guide](/guides/transactions).
+    </Step>
+  </Steps>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+    Explore by topic
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Dive deeper into specific features and capabilities
+  </p>
+
+  <CardGroup cols={2}>
+    <Card 
+      title="Authentication" 
+      icon="lock" 
+      href="/authentication"
+    >
+      Learn how to authenticate users with JWT tokens, handle token refresh, and secure your API requests.
+    </Card>
+    <Card 
+      title="Transaction Management" 
+      icon="receipt" 
+      href="/guides/transactions"
+    >
+      Complete guide to creating, updating, and managing financial transactions with income and expense tracking.
+    </Card>
+    <Card 
+      title="Categories" 
+      icon="folder-open" 
+      href="/guides/categories"
+    >
+      Organize transactions with custom categories, including color and icon customization.
+    </Card>
+    <Card 
+      title="Date Filtering" 
+      icon="calendar" 
+      href="/guides/date-filtering"
+    >
+      Filter transactions by date ranges and retrieve financial data for specific time periods.
+    </Card>
+  </CardGroup>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+    Key features
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Everything you need for robust financial tracking
+  </p>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="p-6 rounded-xl border border-gray-200 dark:border-[#27272a] bg-gray-50 dark:bg-[#1a1d27]">
+      <div className="w-12 h-12 rounded-lg bg-[#10B981]/10 dark:bg-[#10B981]/20 flex items-center justify-center mb-4">
+        <span className="text-2xl">🔐</span>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        Secure Authentication
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        JWT-based authentication with access and refresh tokens, plus Argon2 password hashing
+      </p>
+    </div>
+
+    <div className="p-6 rounded-xl border border-gray-200 dark:border-[#27272a] bg-gray-50 dark:bg-[#1a1d27]">
+      <div className="w-12 h-12 rounded-lg bg-[#10B981]/10 dark:bg-[#10B981]/20 flex items-center justify-center mb-4">
+        <span className="text-2xl">💰</span>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        Complete Transaction Management
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Full CRUD operations for income and expense tracking with automatic balance calculation
+      </p>
+    </div>
+
+    <div className="p-6 rounded-xl border border-gray-200 dark:border-[#27272a] bg-gray-50 dark:bg-[#1a1d27]">
+      <div className="w-12 h-12 rounded-lg bg-[#10B981]/10 dark:bg-[#10B981]/20 flex items-center justify-center mb-4">
+        <span className="text-2xl">🏷️</span>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        Custom Categories
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Organize transactions with customizable categories including color and icon support
+      </p>
+    </div>
+
+    <div className="p-6 rounded-xl border border-gray-200 dark:border-[#27272a] bg-gray-50 dark:bg-[#1a1d27]">
+      <div className="w-12 h-12 rounded-lg bg-[#10B981]/10 dark:bg-[#10B981]/20 flex items-center justify-center mb-4">
+        <span className="text-2xl">📊</span>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        Financial Insights
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Automatic tracking of total income, expenses, and current balance for financial overview
+      </p>
+    </div>
+
+    <div className="p-6 rounded-xl border border-gray-200 dark:border-[#27272a] bg-gray-50 dark:bg-[#1a1d27]">
+      <div className="w-12 h-12 rounded-lg bg-[#10B981]/10 dark:bg-[#10B981]/20 flex items-center justify-center mb-4">
+        <span className="text-2xl">📅</span>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        Date Filtering
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Filter transactions by custom date ranges to analyze spending patterns over time
+      </p>
+    </div>
+
+    <div className="p-6 rounded-xl border border-gray-200 dark:border-[#27272a] bg-gray-50 dark:bg-[#1a1d27]">
+      <div className="w-12 h-12 rounded-lg bg-[#10B981]/10 dark:bg-[#10B981]/20 flex items-center justify-center mb-4">
+        <span className="text-2xl">⚡</span>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        Built with FastAPI
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        High-performance Python API with automatic OpenAPI documentation and validation
+      </p>
+    </div>
+  </div>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="rounded-2xl border-2 border-[#10B981] dark:border-[#059669] bg-gradient-to-br from-[#10B981]/5 to-[#059669]/5 dark:from-[#059669]/10 dark:to-[#047857]/10 p-8 md:p-12">
+    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+      Ready to start building?
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 mb-6 max-w-2xl">
+      Follow our quickstart guide to get your first API request running in minutes, or explore the complete API reference.
+    </p>
+    <a 
+      href="/quickstart" 
+      className="inline-flex items-center px-6 py-3 rounded-lg bg-[#10B981] text-white font-semibold hover:bg-[#059669] transition-colors"
+    >
+      Get Started Now
+    </a>
+  </div>
+</div>

@@ -1,0 +1,87 @@
+---
+title: 'Create Category'
+api: 'POST /categories'
+description: 'Create a new category for the authenticated user'
+---
+
+## Authentication
+
+This endpoint requires authentication. Include a valid JWT token in the Authorization header.
+
+## Request Body
+
+<ParamField body="name" type="string" required>
+  Name of the category. Must be unique for the authenticated user (unique constraint on user_id + name combination)
+</ParamField>
+
+<ParamField body="color" type="string" required>
+  Color code for the category (e.g., hex color like "#4CAF50")
+</ParamField>
+
+<ParamField body="icon" type="string" required>
+  Icon identifier for the category (e.g., "shopping-cart", "car", "movie")
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="integer">
+  Unique identifier for the newly created category
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Confirmation message
+</ResponseField>
+
+## Example Request
+
+```bash cURL
+curl -X POST "https://api.expensia.com/categories" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Groceries",
+    "color": "#4CAF50",
+    "icon": "shopping-cart"
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "id": 1,
+  "message": "New category added"
+}
+```
+
+## Error Responses
+
+<ResponseField name="409" type="Conflict">
+  A category with this name already exists for the authenticated user (unique constraint violation)
+  
+  ```json
+  {
+    "detail": "Category name already exists"
+  }
+  ```
+</ResponseField>
+
+<ResponseField name="401" type="Unauthorized">
+  Missing or invalid authentication token
+</ResponseField>
+
+<ResponseField name="422" type="Validation Error">
+  Invalid request body or missing required fields
+</ResponseField>
+
+## Response Codes
+
+<ResponseField name="201" type="Created">
+  Category created successfully
+</ResponseField>
+
+## Notes
+
+- Category names must be unique per user. The API enforces a unique constraint on the combination of `user_id` and `name`.
+- If you attempt to create a category with a name that already exists for your account, you'll receive a 409 Conflict error.
+- All three fields (name, color, icon) are required in the request body.
